@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sud-app
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    container_name: sud-db
+    environment:
+      POSTGRES_DB: my_sud
+      POSTGRES_USER: sud_user
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: sud-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: alexandrcyganov18@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: sud-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+
+volumes:
+  dbdata:
+  pgadmindata:
